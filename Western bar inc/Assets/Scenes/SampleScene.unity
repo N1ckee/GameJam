@@ -971,6 +971,11 @@ MonoBehaviour:
   maxx: 3.8
   miny: -1
   maxy: 3.5
+  camera: {fileID: 519420031}
+  viewminimum: 1
+  viewmaximum: 6
+  viewsize: 5
+  zoomspeed: 0.4
   newPosition: {x: 0, y: 0, z: -10}
 --- !u!1 &853373981
 GameObject:
