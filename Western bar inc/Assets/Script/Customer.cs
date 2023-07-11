@@ -61,13 +61,57 @@ public class Customer : MonoBehaviour
                         generateOnce = false;
                     }
 
-                    if (IsWalking)
+                    if (!IsWalking)
                     {
-
+                        generateOnce = true;
+                        currentTask++;
                     }
 
                 break;
-            
+                
+                case 1:
+                    if (generateOnce)
+                    {
+                        WaitOnDrink();
+                        generateOnce = false;
+                    }
+
+                    if (!IsWalking)
+                    {
+                        generateOnce = true;
+                        currentTask++;
+                    }
+                break;
+
+                case 2:
+                    if (generateOnce)
+                    {
+                        GetDrink();
+                        generateOnce = false;
+                    }
+
+                    if (!IsWalking)
+                    {
+                        generateOnce = true;
+                        currentTask++;
+                    }
+                break;
+
+                case 3:
+                    if (generateOnce)
+                    {
+                        FindSeat();
+                        generateOnce = false;
+                    }
+
+                    if (!IsWalking)
+                    {
+                        generateOnce = true;
+                        currentTask++;
+                    }
+                    break;
+
+
             }
         }
 
@@ -94,5 +138,20 @@ public class Customer : MonoBehaviour
     public void OrderDrink()
     {
         FindNewpath(Spawn, PayStations[0]);
+    }
+
+    public void WaitOnDrink()
+    {
+        FindNewpath(Controller.WayPoints[0], SitStations[2]);
+    }
+
+    public void GetDrink()
+    {
+        FindNewpath(Controller.WayPoints[0], GetStations[0]);
+    }
+
+    public void FindSeat() 
+    {
+        FindNewpath(Controller.WayPoints[0], SitStations[2]);
     }
 }
