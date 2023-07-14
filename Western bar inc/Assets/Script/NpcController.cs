@@ -10,6 +10,7 @@ public class NpcController : MonoBehaviour
     public float WayPointRad;
 
     public List<Vector3> WayPoints;
+    public Vector3 LastWayPoint;
 
     // Start is called before the first frame update
     void Start()
@@ -27,6 +28,7 @@ public class NpcController : MonoBehaviour
 
             if (Vector2.Distance(this.transform.position, wayPoint) < WayPointRad && WayPoints.Count > 1) 
             {
+                LastWayPoint = WayPoints[0];
                 WayPoints.RemoveAt(0);
             }
 

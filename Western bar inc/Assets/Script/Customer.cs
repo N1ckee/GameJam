@@ -1,36 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 public class Customer : MonoBehaviour
 {
     public NpcController Controller;
+    public OrderManger orderManger;
 
     public TileMapManger TileMap;
     public Pathfinding pathfinding;
+    public TMP_Text TalkingText;
 
     public Vector2 Spawn;
 
-    public Vector2[] QueStations;
-    public Vector2[] PayStations;
-    public Vector2[] SitStations;
-    public Vector3[] GetStations;
-
-    bool IsOrdering = false;
-    bool IsWaiting = false;
-    bool IsWalking = false;
-    bool generateOnce = true;
+    public string[] favoriteDrinks = { "Beer", "Beer", "Beer" };
     private float Drunkness = 0;
     private float funness = 5;
     private float Awakness = 10;
     private int currentTask = 0;
+    public float talkingSpeed = 0.08f;
 
     public bool Started;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        orderManger = FindAnyObjectByType<OrderManger>();
+        NewFavoriteDrink();
+        TalkingText = GetComponentInChildren<TMP_Text>();
     }
 
     // Update is called once per frame
@@ -38,88 +38,15 @@ public class Customer : MonoBehaviour
     {
         if (Started)
         {
-            IsOrdering = true;
+            orderManger.WantsToQue(this);
+
             Started = false;
-        }
-        if (Controller.WayPoints.Count <= 1)
-        {
-            IsWalking = false;
-        }
-
-        Input.GetKey(KeyCode.S);
-
-        
-
-        if (IsOrdering) 
-        { 
-            switch (currentTask) 
-            {
-                case 0:
-                    if (generateOnce) 
-                    { 
-                    OrderDrink();
-                        generateOnce = false;
-                    }
-
-                    if (!IsWalking)
-                    {
-                        generateOnce = true;
-                        currentTask++;
-                    }
-
-                break;
-                
-                case 1:
-                    if (generateOnce)
-                    {
-                        WaitOnDrink();
-                        generateOnce = false;
-                    }
-
-                    if (!IsWalking)
-                    {
-                        generateOnce = true;
-                        currentTask++;
-                    }
-                break;
-
-                case 2:
-                    if (generateOnce)
-                    {
-                        GetDrink();
-                        generateOnce = false;
-                    }
-
-                    if (!IsWalking)
-                    {
-                        generateOnce = true;
-                        currentTask++;
-                    }
-                break;
-
-                case 3:
-                    if (generateOnce)
-                    {
-                        FindSeat();
-                        generateOnce = false;
-                    }
-
-                    if (!IsWalking)
-                    {
-                        generateOnce = true;
-                        currentTask++;
-                    }
-                    break;
-
-
-            }
         }
 
     }
 
     public void FindNewpath(Vector2 startNode, Vector2 endNode)
     {
-        IsWalking = true;
         pathfinding = new Pathfinding(TileMap.Width, TileMap.Height, TileMap);
         List<PathNode> path = pathfinding.FindPath(((int)startNode.x), (int)startNode.y, (int)endNode.x, (int)endNode.y);
         if (path != null)
@@ -135,23 +62,27 @@ public class Customer : MonoBehaviour
         }
     }
 
-    public void OrderDrink()
+    private void NewFavoriteDrink() 
     {
-        FindNewpath(Spawn, PayStations[0]);
+        for (int i = 0; i < favoriteDrinks.Length; i++) 
+        {
+            int rand = Random.Range(0, orderManger.DrinkMenu.Count());
+            favoriteDrinks[i] = orderManger.DrinkMenu[rand];
+        }
     }
 
-    public void WaitOnDrink()
+    public IEnumerator SaySomething(string word)
     {
-        FindNewpath(Controller.WayPoints[0], SitStations[2]);
-    }
+        TalkingText.text = "";
+        string Said = "";
 
-    public void GetDrink()
-    {
-        FindNewpath(Controller.WayPoints[0], GetStations[0]);
-    }
+        for (int i = 0; i < word.Length; i++)
+        {
+            Said += word[i];
+            TalkingText.text = Said;
 
-    public void FindSeat() 
-    {
-        FindNewpath(Controller.WayPoints[0], SitStations[2]);
+            yield return new WaitForSeconds(talkingSpeed);
+        }
+        
     }
 }
