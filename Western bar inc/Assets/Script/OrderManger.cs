@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEngine.XR;
 
 public class OrderManger : MonoBehaviour
@@ -9,6 +10,7 @@ public class OrderManger : MonoBehaviour
 
     public List<Customer> Orders;
     public List<Staff> StaffOrders;
+    public DrinkList DrinkInstructions;
 
     public bool IsTakeingCustomer = false;
 
@@ -19,6 +21,7 @@ public class OrderManger : MonoBehaviour
     private float RealPayTime;
     private float RealServTime;
     private bool OneTime = false;
+    private bool IsServing = false;
 
     [Header("CustomerSpots")]
     public List<Vector2Int> QueSpots;
@@ -37,6 +40,8 @@ public class OrderManger : MonoBehaviour
     public List<Vector2Int> Shelfs;
     public List<Vector2Int> StaffServArea;
 
+    private DrinkMaking TheMixing;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -45,103 +50,136 @@ public class OrderManger : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        if (IsTakeingCustomer && Orders.Count == 0)
-        {
-            Orders.Add(Queing[0]);
-            Queing.Remove(Queing[0]);
-
-            Orders[0].FindNewpath(Orders[0].Controller.LastWayPoint, PayArea[0]);
-        }
-
-        if (AvailableStaff.Count > 0 && Queing.Count > 0) 
-        {
-            StaffOrders.Add(AvailableStaff[0]);
-            AvailableStaff.Remove(AvailableStaff[0]);
-
-            StaffOrders[0].FindNewpath(StaffOrders[0].Controller.LastWayPoint, StaffPayArea[0]);
-            WaitingForStaff = true;
-        }
-
-        if (WaitingForStaff) 
+        if (Queing.Count > 0 && AvailableStaff.Count > 0) 
         { 
-            if (StaffOrders[0].Controller.WayPoints.Count <= 1) 
-            {
-                IsTakeingCustomer = true;
-                WaitingForStaff = false;
-            }
+           TakeOrder();
+        }
+        if (Orders.Count > 0 && StaffOrders.Count > 0)
+        {
+            MakeDrink();
+        }
+    }
+
+    public void TakeOrder() 
+    {
+        Customer TheCustomer = Queing[0];
+        Staff TheStaff = AvailableStaff[0];
+
+        if (TheCustomer.Controller.WayPoints.Count <= 1 && TheStaff.Controller.WayPoints.Count <= 1 && TheStaff.NothingToDo && !TheStaff.IsTakingOrder)
+        {
+            WalkTo(TheStaff.Controller, StaffPayArea[0]);
+            StartCoroutine(TheCustomer.Controller.SaySomething("Howdy"));
+            TheStaff.IsTakingOrder = true;
         }
 
-        if (IsTakeingCustomer)
+        if (TheStaff.IsTakingOrder) 
         {
-            if (StaffOrders[0].Controller.WayPoints.Count <= 1 && Orders[0].Controller.WayPoints.Count <= 1)
+            Orders.Add(TheCustomer);
+            StaffOrders.Add(TheStaff);
+
+            WalkTo(TheCustomer.Controller, PayArea[0]);
+            StartCoroutine(TheStaff.Controller.SaySomething("So what do you want?"));
+
+            Queing.Remove(TheCustomer);
+            AvailableStaff.Remove(TheStaff);
+        }
+    }
+
+    public void MakeDrink()
+    {
+        Customer TheCustomer = Orders[0];
+        Staff TheStaff = StaffOrders[0];
+        string TheDrink = "";
+
+        if (!TheCustomer.Orderd)
+        { 
+            StartCoroutine(TheCustomer.Controller.SaySomething("Hmmm"));
+            TheCustomer.DrinkIdea();
+            TheDrink = TheCustomer.OrderdDrink;
+            StartCoroutine(TheCustomer.Controller.SaySomething("Give me some " + TheDrink.ToLower()));
+
+            TheCustomer.Orderd = true;
+
+            for (int i = 0; i < DrinkInstructions.AllDrinks.Count; i++)
             {
-                if (PayTime <= 0 && !OneTime)
+                if (TheDrink == DrinkInstructions.AllDrinks[i].Drink)
                 {
-                    int rand = Random.Range(0, Orders[0].favoriteDrinks.Length);
-                    StartCoroutine(Orders[0].SaySomething(Orders[0].favoriteDrinks[rand] + " Please"));
-                    StartCoroutine(PrepareDrink(StaffOrders[0], Orders[0], Orders[0].favoriteDrinks[rand]));
-                    OneTime = true;
-                    IsTakeingCustomer = false;
+                    TheMixing = DrinkInstructions.AllDrinks[i];
+                    break;
                 }
-
-                PayTime -= Time.deltaTime;
             }
+
         }
-    }
 
-    public IEnumerator PrepareDrink(Staff staff, Customer theCustomer, string drink) 
-    {
-        yield return new WaitForSeconds(1);
-        // Find drink
-        int randDrink = Random.Range(0, Shelfs.Count);
-
-        staff.FindNewpath(staff.Controller.LastWayPoint, Shelfs[randDrink]);
-
-        bool IsServing = true;
-
-        while (IsServing) 
+        if (TheMixing != null)
         {
-            if (staff.Controller.WayPoints.Count <= 1)
+            StartCoroutine(TheMixing.StartMaking(TheStaff.Controller));
+
+            if (TheMixing.CurrentTask >= TheMixing.makingPositionList.Length)
             {
-                yield return new WaitForSeconds(5);
-                theCustomer.FindNewpath(theCustomer.Controller.LastWayPoint, ServArea[0]);
-                staff.FindNewpath(staff.Controller.LastWayPoint, StaffServArea[0]);
-                IsServing = false;
-                break;
+                ServCustomer(TheCustomer, TheStaff, TheDrink, TheMixing);
             }
-
-            yield return new WaitForSeconds(3);
-            int randWaitingArea = Random.Range(0, WaitAreas.Count);
-            theCustomer.FindNewpath(theCustomer.Controller.LastWayPoint, WaitAreas[randWaitingArea]);
         }
-
-        // Serv Drink
-
-        bool GettingDrink = true;
-        StartCoroutine(Orders[0].SaySomething("Thank you for the " + drink + "!"));
-        theCustomer.FindNewpath(theCustomer.Controller.LastWayPoint, Seats[0]);
 
     }
 
-    public void WantsToQue(Customer theCustomer) 
-    { 
-        if (QueAvailability()) 
-        { 
-            Queing.Add(theCustomer);
-            theCustomer.FindNewpath(theCustomer.Controller.LastWayPoint, QueSpots[Queing.Count - 1]);
-        }
-    }
-
-    public bool QueAvailability() 
+    public void ServCustomer(Customer TheCustomer, Staff TheStaff, string TheDrink, DrinkMaking Ins)
     {
-        if (QueSpots.Count > Queing.Count)
+        if (!IsServing)
         {
+            WalkTo(TheCustomer.Controller, ServArea[0]);
+            WalkTo(TheStaff.Controller, StaffServArea[0]);
+            IsServing = true;
+        }
+
+        if (TheCustomer.Controller.WayPoints.Count <= 1 && TheStaff.Controller.WayPoints.Count <= 1)
+        {
+
+            // end 
+
+
+            StartCoroutine(TheStaff.Controller.SaySomething("Here you go pal!"));
+            StartCoroutine(TheCustomer.Controller.SaySomething("Thanks!"));
+            TheCustomer.IsHoldingDrink = true;
+            TheCustomer.Orderd = false;
+            Ins.CurrentTask = 0;
+            TheStaff.NothingToDo = true;
+
+
+            AvailableStaff.Add(TheStaff);
+
+            WaitingForStaff = false;
+
+            Orders.Remove(TheCustomer);
+            StaffOrders.Remove(TheStaff);
+
+        }
+    }
+
+    public bool CustomerToQue(Customer TheCustomer)
+    {
+        if (Queing.Count < QueSpots.Count)
+        {
+            Queing.Add(TheCustomer);
+            WalkTo(TheCustomer.Controller, QueSpots[Queing.Count - 1]);
             return true;
         }
-        else
-            return false;
+
+        return false;
+    } 
+
+    public void WalkTo(NpcController TheController, Vector2 position)
+    {
+        TheController.FindNewpath(TheController.PreviousPosition, position);
+    }
+
+    public void WalkToRandomPoints(NpcController TheController, Vector2[] RandomPostions) 
+    {
+        int randPos = Random.RandomRange(0, RandomPostions.Length);
+
+        TheController.FindNewpath(TheController.PreviousPosition, RandomPostions[randPos]);
     }
 
 }

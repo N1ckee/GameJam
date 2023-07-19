@@ -4,85 +4,116 @@ using System.Linq;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public class Customer : MonoBehaviour
 {
     public NpcController Controller;
     public OrderManger orderManger;
-
-    public TileMapManger TileMap;
-    public Pathfinding pathfinding;
-    public TMP_Text TalkingText;
-
-    public Vector2 Spawn;
+    public IntrestAreas areaAreas;
 
     public string[] favoriteDrinks = { "Beer", "Beer", "Beer" };
+    private int Thirsty = 30;
+    private float ThirstyTimer;
+    private int RandomWait = 2;
     private float Drunkness = 0;
     private float funness = 5;
     private float Awakness = 10;
     private int currentTask = 0;
-    public float talkingSpeed = 0.08f;
 
-    public bool Started;
+    public bool IsHoldingDrink = false;
+
+    public bool Orderd = false;
+    public string OrderdDrink = "Nothing";
+
+    public bool Ordering;
+    public bool LookAround;
+    public bool DoSomthing;
+
+    private float ActionTime;
 
     // Start is called before the first frame update
     void Start()
     {
-        orderManger = FindAnyObjectByType<OrderManger>();
-        NewFavoriteDrink();
-        TalkingText = GetComponentInChildren<TMP_Text>();
+        orderManger = FindObjectOfType<OrderManger>();
+        areaAreas = FindObjectOfType<IntrestAreas>();
+        // NewFavoriteDrink();
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        if (Started)
+        if (Ordering && Controller.WayPoints.Count() <= 1)
         {
-            orderManger.WantsToQue(this);
+            bool CanQue = orderManger.CustomerToQue(this);
 
-            Started = false;
-        }
-
-    }
-
-    public void FindNewpath(Vector2 startNode, Vector2 endNode)
-    {
-        pathfinding = new Pathfinding(TileMap.Width, TileMap.Height, TileMap);
-        List<PathNode> path = pathfinding.FindPath(((int)startNode.x), (int)startNode.y, (int)endNode.x, (int)endNode.y);
-        if (path != null)
-        {
-            List<Vector3> wayPoints = new List<Vector3>();
-            foreach (PathNode node in path)
+            if (CanQue)
             {
-                wayPoints.Add(node.RealPos);
+                Ordering = false;
             }
-
-            wayPoints.Add(path[path.Count - 1].RealPos);
-            Controller.WayPoints = wayPoints;
         }
+
+        if (!Orderd)
+        {
+            MakeAnAction();
+            GetThirsty();
+        }
+
+        Debug.Log(Thirsty);
+
     }
 
-    private void NewFavoriteDrink() 
+    private void GetThirsty()
     {
-        for (int i = 0; i < favoriteDrinks.Length; i++) 
+
+        if (ThirstyTimer > RandomWait)
+        {
+            RandomWait = Random.Range(0, 5);
+            Thirsty++;
+
+            if (Thirsty >= 70)
+            {
+                Ordering = true;
+                Thirsty = 0;
+            }
+            ThirstyTimer = 0;
+        }
+
+        ThirstyTimer += Time.fixedDeltaTime;
+    }
+
+    private void NewFavoriteDrink()
+    {
+        for (int i = 0; i < favoriteDrinks.Length; i++)
         {
             int rand = Random.Range(0, orderManger.DrinkMenu.Count());
             favoriteDrinks[i] = orderManger.DrinkMenu[rand];
         }
     }
 
-    public IEnumerator SaySomething(string word)
+    public void MakeAnAction()
     {
-        TalkingText.text = "";
-        string Said = "";
-
-        for (int i = 0; i < word.Length; i++)
+            
+        if (Controller.WayPoints.Count() <= 1 && ActionTime >= 3)
         {
-            Said += word[i];
-            TalkingText.text = Said;
-
-            yield return new WaitForSeconds(talkingSpeed);
+            WalkToRandomPoints(areaAreas.SpotList[0].Pos.ToArray());
+            ActionTime = 0;
         }
+
+        ActionTime += Time.fixedDeltaTime;
         
+    }
+
+    public void DrinkIdea()
+    {
+        int RandDrink = Random.Range(0, favoriteDrinks.Count());
+        OrderdDrink = favoriteDrinks[RandDrink];
+    }
+
+    public void WalkToRandomPoints(Vector2Int[] RandomPostions)
+    {
+        int randPos = Random.RandomRange(0, RandomPostions.Length);
+
+        Controller.FindNewpath(Controller.PreviousPosition, RandomPostions[randPos]);
     }
 }

@@ -13,7 +13,7 @@ public class Pathfinding {
     private List<PathNode> CloseList;
 
 
-    public Pathfinding(int width, int height, TileMapManger tileMap)
+    public Pathfinding(TileMapManger tileMap)
     {
         TileMap = tileMap;
     }
@@ -41,35 +41,21 @@ public class Pathfinding {
             }
         }
 
-
-        Debug.Log("startNode, endNode");
-
         startNode.gCost = 0;
         startNode.hCost = CalculateDistance(startNode, endNode);
         startNode.CalulateFCost();
 
-        Debug.Log(" AFFTER startNode, endNode");
 
         while (OpenList.Count > 0)
         {
             PathNode currentNode = GetLowestFCostNode(OpenList);
             if (currentNode == endNode)
             {
-                Debug.Log("curentNode == endNode");
                 return CalculatePath(endNode);
             }
 
             OpenList.Remove(currentNode);
             CloseList.Add(currentNode);
-
-            foreach (PathNode node in OpenList)
-            {
-                Debug.Log("Open: " + node);
-            }
-            foreach (PathNode node in CloseList) 
-            {
-                Debug.Log("Close: " + node.Cells);
-            }
 
             List<PathNode> Neighbours = GetNeighbourList(currentNode);
 
@@ -77,7 +63,6 @@ public class Pathfinding {
             { 
                 if (CloseList.Contains(neighbourNode)) { continue; }
 
-                Debug.Log("Neig : " + neighbourNode);
                 int tentativeGCost = currentNode.gCost + CalculateDistance(currentNode, neighbourNode);
                 if (tentativeGCost < neighbourNode.gCost)
                 {
@@ -93,8 +78,6 @@ public class Pathfinding {
                 }
             }
         }
-
-        Debug.Log("Fail");
         // out of nodes on the OpenList
         return null;
     }
@@ -151,12 +134,6 @@ public class Pathfinding {
             // Up
             if (currentNode.y < TileMap.YMax) { neighbourlist.Add(GetNode(currentNode.x, currentNode.y + 1)); }
         }
-
-        foreach (PathNode neighbour in neighbourlist) 
-        {
-            Debug.Log("This Neigh: " + neighbour.x + "," + neighbour.y);
-        }
-
         return neighbourlist;
     }
 
@@ -182,15 +159,9 @@ public class Pathfinding {
 
     private int CalculateDistance(PathNode a, PathNode b)
     {
-        Debug.Log("XNode: " + a.x);
-        Debug.Log("XNode: " + b.x);
-        Debug.Log("YNode: " + a.y);
-        Debug.Log("YNode: " + b.y);
-
         int xDistance = Mathf.Abs(a.x - b.x);
         int yDistance = Mathf.Abs(a.y - b.y);
         int remaning = Mathf.Abs(xDistance - yDistance);
-        Debug.Log("DIS: " + (MOVE_DIAGONAL_COST * Mathf.Min(xDistance, yDistance) + MOVE_STRAIGHT_COST * remaning));
         return MOVE_DIAGONAL_COST * Mathf.Min(xDistance, yDistance) + MOVE_STRAIGHT_COST * remaning;
 
     }

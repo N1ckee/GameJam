@@ -30,7 +30,7 @@ public class TestScript : MonoBehaviour
     {
         if (start) 
         {
-            pathfinding = new Pathfinding(TileMap.Width, TileMap.Height, TileMap);
+            pathfinding = new Pathfinding(TileMap);
             List<PathNode> path = pathfinding.FindPath(((int)startNode.x), (int)startNode.y, (int)endNode.x, (int)endNode.y);
             if (path != null)
             {

@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 
 public class Staff : MonoBehaviour
 {
     public NpcController Controller;
     public OrderManger orderManger;
+    public TMP_Text TalkingText;
+    public float talkingSpeed = 0.08f;
+    public bool NothingToDo = true;
+    public bool IsTakingOrder = false;
 
-    public TileMapManger TileMap;
-    public Pathfinding pathfinding;
 
     // Start is called before the first frame update
     void Start()
@@ -21,22 +25,5 @@ public class Staff : MonoBehaviour
     void Update()
     {
         
-    }
-
-    public void FindNewpath(Vector2 startNode, Vector2 endNode)
-    {
-        pathfinding = new Pathfinding(TileMap.Width, TileMap.Height, TileMap);
-        List<PathNode> path = pathfinding.FindPath(((int)startNode.x), (int)startNode.y, (int)endNode.x, (int)endNode.y);
-        if (path != null)
-        {
-            List<Vector3> wayPoints = new List<Vector3>();
-            foreach (PathNode node in path)
-            {
-                wayPoints.Add(node.RealPos);
-            }
-
-            wayPoints.Add(path[path.Count - 1].RealPos);
-            Controller.WayPoints = wayPoints;
-        }
     }
 }

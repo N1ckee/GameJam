@@ -458,15 +458,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Controller: {fileID: 6845562229174887766}
   orderManger: {fileID: 0}
-  TileMap: {fileID: 0}
-  TalkingText: {fileID: 8972964021279173938}
-  Spawn: {x: 4, y: -4}
+  areaAreas: {fileID: 0}
   favoriteDrinks:
   - Beer
   - Beer
   - Beer
-  talkingSpeed: 0.07
-  Started: 0
+  IsHoldingDrink: 0
+  Orderd: 0
+  OrderdDrink: Nothing
+  Ordering: 0
+  LookAround: 0
+  DoSomthing: 0
 --- !u!114 &6845562229174887766
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -479,9 +481,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 123ddbb0c856fdf42b3a0d8ab1e3ea37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Speed: 0
-  WayPointRad: 0
+  TileMap: {fileID: 0}
+  Speed: 0.6
+  WayPointRad: 0.05
+  TalkingText: {fileID: 8972964021279173938}
+  talkingSpeed: 0.08
   WayPoints: []
+  NextPosition: {x: 11, y: 4, z: 0}
+  PreviousPosition: {x: 11, y: 4}
 --- !u!1 &8337370572268425056
 GameObject:
   m_ObjectHideFlags: 0

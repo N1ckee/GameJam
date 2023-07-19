@@ -56,7 +56,6 @@ public class TileMapManger : MonoBehaviour
     { 
         if (CheckCell(x,y)) { return null; }
         int cellPos = PathNodes.FindIndex(Node => Node.x == x && Node.y == y);
-        Debug.Log("Tile position: " + cellPos);
         return PathNodes[cellPos];
     }
 
