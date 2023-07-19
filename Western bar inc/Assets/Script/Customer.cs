@@ -39,7 +39,7 @@ public class Customer : MonoBehaviour
         shopStats = FindObjectOfType<ShopStats>();
 
         NewFavoriteDrink();
-
+        Speed();
     }
 
     // Update is called once per frame
@@ -63,6 +63,12 @@ public class Customer : MonoBehaviour
 
         Debug.Log(Thirsty);
 
+    }
+
+    public void Speed()
+    {
+        double newSpeed = 0.5 + (0.15 * shopStats.CustomerSpeed);
+        Controller.Speed = (float)newSpeed;
     }
 
     private void GetThirsty()

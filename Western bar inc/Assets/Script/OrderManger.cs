@@ -112,7 +112,7 @@ public class OrderManger : MonoBehaviour
                 }
             }
 
-            TheShopStats.ChangeMoney(TheMixing.Cash);
+            TheShopStats.ChangeMoney(TheMixing.Cash + ((TheMixing.Cash / 10) * TheShopStats.Entertainment) + ((TheMixing.Cash / 10) * TheShopStats.Decoration));
         }
 
         if (TheMixing != null)
