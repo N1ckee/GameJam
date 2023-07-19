@@ -11,15 +11,14 @@ public class Customer : MonoBehaviour
     public NpcController Controller;
     public OrderManger orderManger;
     public IntrestAreas areaAreas;
+    public ShopStats shopStats;
 
     public string[] favoriteDrinks = { "Beer", "Beer", "Beer" };
     private int Thirsty = 30;
     private float ThirstyTimer;
     private int RandomWait = 2;
-    private float Drunkness = 0;
-    private float funness = 5;
-    private float Awakness = 10;
-    private int currentTask = 0;
+
+
 
     public bool IsHoldingDrink = false;
 
@@ -37,7 +36,10 @@ public class Customer : MonoBehaviour
     {
         orderManger = FindObjectOfType<OrderManger>();
         areaAreas = FindObjectOfType<IntrestAreas>();
-        // NewFavoriteDrink();
+        shopStats = FindObjectOfType<ShopStats>();
+
+        NewFavoriteDrink();
+
     }
 
     // Update is called once per frame

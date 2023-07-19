@@ -11,6 +11,7 @@ public class OrderManger : MonoBehaviour
     public List<Customer> Orders;
     public List<Staff> StaffOrders;
     public DrinkList DrinkInstructions;
+    public ShopStats TheShopStats;
 
     public bool IsTakeingCustomer = false;
 
@@ -111,6 +112,7 @@ public class OrderManger : MonoBehaviour
                 }
             }
 
+            TheShopStats.ChangeMoney(TheMixing.Cash);
         }
 
         if (TheMixing != null)
